@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import CreatorModel from "../../models/creator.js"
+import CreatorModel from "../models/creator.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -87,7 +87,12 @@ const LOGIN = async (req, res) => {
       const creator = await CreatorModel.findOneAndDelete({
         id: req.params.id,
       });
-  
+
+      if (creator.creatorId !== req.body.creatorId) {
+        return res.status(403).json({
+        message: "We can only delete an account that belongs to you",
+       });
+      }
   
       return res.status(200).json({ message: "Your account has been deleted", creator: creator });
     } catch (error) {
@@ -97,10 +102,8 @@ const LOGIN = async (req, res) => {
   };
 
 
-
   const GET_ALL_CREATORS = async (req, res) => {
     try {
-      // dar sita placiau paziureti
       const creators = await CreatorModel.find({}, "fullName thumbnailUrl");
       
       return res.status(200).json({ creators: creators });
@@ -110,4 +113,5 @@ const LOGIN = async (req, res) => {
     }
   };
 
-export { SIGN_UP, LOGIN, GET_CREATOR_ACCOUNT_BY_ID, DELETE_CREATOR_ACCOUNT_BY_ID, GET_ALL_CREATORS }; 
+
+export { SIGN_UP, LOGIN, GET_CREATOR_ACCOUNT_BY_ID, DELETE_CREATOR_ACCOUNT_BY_ID, GET_ALL_CREATORS  }; 

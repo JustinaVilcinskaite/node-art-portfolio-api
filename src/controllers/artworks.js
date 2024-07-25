@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import ArtworkModel from "../../models/artwork.js"
+import ArtworkModel from "../models/artwork.js"
 
 
 const ADD_ARTWORK = async (req, res) => {
@@ -24,9 +24,15 @@ const ADD_ARTWORK = async (req, res) => {
 };
 
 
-const GET_ARTWORKS = async (req, res) => {
+const GET_ALL_ARTWORKS_BY_CREATOR = async (req, res) => {
   try {
-    const artworks = await ArtworkModel.find();
+    const creatorId = req.params.creatorId;
+    
+    const artworks = await ArtworkModel.find({ creatorId: creatorId });
+
+    if (!artworks.length) {
+      return res.status(404).json({ message: `No artworks found for creator with id ${creatorId}` });
+    }
 
     return res.status(200).json({ artworks: artworks });
 
@@ -74,6 +80,12 @@ const DELETE_ARTWORK_BY_ID = async (req, res) => {
     const id = req.params.id;
   
     const artwork = await ArtworkModel.findOneAndDelete({ id: id });
+
+    if (artwork.creatorId !== req.body.creatorId) {
+       return res.status(403).json({
+       message: "We can only delete artwork that belongs to our to your account",
+      });
+     }
   
     if(!artwork) {
       return res.status(404).json({ message:`Artwork with id ${id} does not exist` });
@@ -87,4 +99,4 @@ const DELETE_ARTWORK_BY_ID = async (req, res) => {
 };
 
 
-export { ADD_ARTWORK, GET_ARTWORKS, GET_ARTWORK_BY_ID, UPDATE_ARTWORK_BY_ID, DELETE_ARTWORK_BY_ID };
+export { ADD_ARTWORK, GET_ALL_ARTWORKS_BY_CREATOR, GET_ARTWORK_BY_ID, UPDATE_ARTWORK_BY_ID, DELETE_ARTWORK_BY_ID };
