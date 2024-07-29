@@ -3,8 +3,8 @@ import 'dotenv/config';
 import mongoose from 'mongoose';
 import cors from "cors";
 
-import ArtworkRouter from "./src/routes/artwork.js";
-import CreatorRouter from "./src/routes/creator.js";
+import ArtworkRouter from "./src/route/artwork.js";
+import CreatorRouter from "./src/route/creator.js";
 
 const app = express();
 app.use(cors());

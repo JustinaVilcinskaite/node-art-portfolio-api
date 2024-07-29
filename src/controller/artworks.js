@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import ArtworkModel from "../models/artwork.js"
+import ArtworkModel from "../model/artwork.js"
 
 
 const ADD_ARTWORK = async (req, res) => {
@@ -62,41 +62,74 @@ const GET_ARTWORK_BY_ID = async (req, res) => {
 
 };
 
+
+
 const UPDATE_ARTWORK_BY_ID = async (req, res) => {
   try {
     const id = req.params.id;
-  
-    const artwork = await ArtworkModel.findOneAndUpdate({ id: id }, {...req.body }, { new: true });
+    const artwork = await ArtworkModel.findOne({ id: id });
     
-    return res.status(200).json({ message: "Artwork has been updated successfully", artwork: artwork });
+    if (!artwork) {
+      return res.status(404).json({ message: `Artwork with id ${id} does not exist` });
+    }
+
+
+    if (artwork.creatorId !== req.body.creatorId) {
+      return res.status(403).json({ message: "You can only update artwork that belongs to your account" });
+    }
+
+    const updatedArtwork = await ArtworkModel.findOneAndUpdate({ id: id }, { ...req.body }, { new: true });
+
+    return res.status(200).json({ message: "Artwork has been updated successfully", artwork: updatedArtwork });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Error in application" });
   }
 };
 
+
 const DELETE_ARTWORK_BY_ID = async (req, res) => {
   try {
     const id = req.params.id;
-  
-    const artwork = await ArtworkModel.findOneAndDelete({ id: id });
+
+    const artwork = await ArtworkModel.findOne({ id: id });
+
+    if (!artwork) {
+      return res.status(404).json({ message: `Artwork with id ${id} does not exist` });
+    }
 
     if (artwork.creatorId !== req.body.creatorId) {
-       return res.status(403).json({
-       message: "We can only delete artwork that belongs to our to your account",
-      });
-     }
-  
-    if(!artwork) {
-      return res.status(404).json({ message:`Artwork with id ${id} does not exist` });
+      return res.status(403).json({ message: "You can only delete artwork that belongs to your account" });
     }
-  
+
+    await ArtworkModel.deleteOne({ id: id });
+
     return res.status(200).json({ message: "Artwork has been deleted", artwork: artwork });
   } catch (error) {
     console.log(error);
-    return req.status(500).json({ message: "Error in application" });
+    return res.status(500).json({ message: "Error in application" });
   }
 };
 
+// const DELETE_ARTWORK_BY_ID = async (req, res) => {
+//   try {
+//     const id = req.params.id;
+//     const creatorId = req.body.creatorId;
+
+//     const artwork = await ArtworkModel.findOneAndDelete({ id, creatorId });
+
+//     if (!artwork) {
+//       return res.status(404).json({ message: `Artwork with id ${id} does not exist or you do not have permission to delete it` });
+//     }
+
+//     return res.status(200).json({ message: "Artwork has been deleted", artwork });
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).json({ message: "Error in application" });
+//   }
+// };
+
 
 export { ADD_ARTWORK, GET_ALL_ARTWORKS_BY_CREATOR, GET_ARTWORK_BY_ID, UPDATE_ARTWORK_BY_ID, DELETE_ARTWORK_BY_ID };
+
+

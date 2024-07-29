@@ -6,13 +6,13 @@ import {
     GET_ARTWORK_BY_ID, 
     UPDATE_ARTWORK_BY_ID, 
     DELETE_ARTWORK_BY_ID,
-} from "../controllers/artworks.js";
+} from "../controller/artworks.js";
 
-import authCreator from "../middlewares/auth.js";
+import authCreator from "../middleware/auth.js";
 
 const router = express.Router();
 
-
+// Authenticated routes
 router.post('/artworks', authCreator, ADD_ARTWORK);
 router.get('/artworks/creators/:creatorId', authCreator, GET_ALL_ARTWORKS_BY_CREATOR);
 router.get('/artworks/:id', authCreator, GET_ARTWORK_BY_ID);

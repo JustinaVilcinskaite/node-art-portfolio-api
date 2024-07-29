@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import CreatorModel from "../models/creator.js";
+import CreatorModel from "../model/creator.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -21,16 +21,7 @@ const SIGN_UP = async (req, res) => {
     
        await creator.save();
     
-        const token = jwt.sign(
-          {
-            email: creator.email,
-            creatorId: creator.id,
-          },
-          process.env.JWT_SECRET,
-          { expiresIn: "24H" }
-        );
-    
-        return res.status(201).json({ token: token, creator: creator, message: "Creator account has been created" });
+        return res.status(201).json({ creator: creator, message: "Creator account has been created" });
     
       } catch (error) {
         console.log(error);
@@ -63,8 +54,8 @@ const LOGIN = async (req, res) => {
   
     return res.status(200).json({ token: token, message: "Login was successfull" })
     
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    console.log(error);
     return res.status(500).json({ message: "Error in application" });
   }
   };
@@ -72,8 +63,12 @@ const LOGIN = async (req, res) => {
 
   const GET_CREATOR_ACCOUNT_BY_ID = async (req, res) => {
     try {
-      const creator = await CreatorModel.findOne({ id: req.params.id });
-  
+      const id = req.params.id;
+      const creator = await CreatorModel.findOne({ id: id });
+
+      if (!creator) {
+        return res.status(404).json({ message: `Account with id ${id} does not exist` });
+      }
   
       return res.status(200).json({ creator: creator });
     } catch (err) {
@@ -82,17 +77,27 @@ const LOGIN = async (req, res) => {
     }
   };
   
+ 
   const DELETE_CREATOR_ACCOUNT_BY_ID = async (req, res) => {
     try {
-      const creator = await CreatorModel.findOneAndDelete({
-        id: req.params.id,
-      });
-
-      if (creator.creatorId !== req.body.creatorId) {
-        return res.status(403).json({
-        message: "We can only delete an account that belongs to you",
-       });
+      const id = req.params.id; 
+      const requesterId = req.body.creatorId; 
+  
+  
+      const creator = await CreatorModel.findOne({ id: id });
+  
+    
+      if (!creator) {
+        return res.status(404).json({ message: `Account with id ${id} does not exist` });
       }
+  
+      if (creator.id !== requesterId) {
+        return res.status(403).json({
+          message: "You can only delete your own account",
+        });
+      }
+
+      await CreatorModel.deleteOne({ id: id });
   
       return res.status(200).json({ message: "Your account has been deleted", creator: creator });
     } catch (error) {
